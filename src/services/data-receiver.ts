@@ -5,12 +5,11 @@ class DataReceiverService {
     const output = await this.parseInput(dataPath);
     const mapFirstTwoDigitsToNumber = this.mapData(output);
 
-    console.log(output);
-    console.log(mapFirstTwoDigitsToNumber);
+    return { output, mapFirstTwoDigitsToNumber };
   }
 
   mapData(data: string[]) {
-    const result = new Map();
+    const result = new Map<string, string>();
 
     for (const item of data) {
       const key = this.getFirstTwoDigits(item);
