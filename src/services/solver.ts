@@ -1,29 +1,66 @@
 import { dataReceiverService } from "./data-receiver";
-
+import { Node } from "../classes/node";
 type ParsedData = Awaited<ReturnType<(typeof dataReceiverService)["init"]>>;
 class SolverService {
-  sequences: string[][] = [];
+  result!: ParsedData;
+  depth: number = 0;
+  currentSequence = new Set<Node>();
+  fullyExploredNodes = new Set<Node>();
+  depthRecord: number = 0;
+  biggestSequence: Node[] = [];
   async start(dataPath: string) {
     const result = await dataReceiverService.init(dataPath);
-    this.findSequences(result);
-    this.printBiggestSequence();
+    this.result = result;
+    this.buildTree();
+    this.findSequences();
+
+    this.printBiggestSequence(this.biggestSequence);
   }
 
-  findSequences(parsedData: ParsedData) {
-    for (const number of parsedData.output) {
-      const sequence = this.findNumberSequence(number, parsedData);
-      this.sequences.push(sequence);
-    }
-    sortSequences(this.sequences);
+  buildTree() {
+    for (const node of this.result.input) {
+      const lastTwoDigits = dataReceiverService.getLastTwoDigits(node);
 
-    function sortSequences(sequences: string[][]) {
-      sequences.sort((a, b) => a.length - b.length);
+      const foundChildren =
+        this.result.mapFirstTwoDigitsToNumber.get(lastTwoDigits);
+
+      if (!foundChildren) {
+        continue;
+      }
+      for (const child of foundChildren) {
+        node.children.push(child);
+      }
     }
   }
 
-  printBiggestSequence() {
-    const biggestSequence = this.sequences[this.sequences.length - 1];
+  findSequences() {
+    for (const node of this.result.input) {
+      if (this.fullyExploredNodes.has(node)) {
+        continue;
+      }
+      this.traverseNodeRecursive(node);
+    }
+  }
+  traverseNodeRecursive(node: Node) {
+    if (this.currentSequence.has(node)) {
+      return;
+    }
+    this.currentSequence.add(node);
 
+    if (this.depth > this.depthRecord) {
+      this.depthRecord = this.depth;
+      this.biggestSequence = [...this.currentSequence.values()];
+    }
+    for (const child of node.children) {
+      ++this.depth;
+      this.traverseNodeRecursive(child);
+      --this.depth;
+    }
+    this.fullyExploredNodes.add(node);
+    this.currentSequence.delete(node);
+  }
+
+  printBiggestSequence(biggestSequence: Node[]) {
     if (biggestSequence.length <= 1) {
       console.log("No sequence found");
       return;
@@ -31,14 +68,14 @@ class SolverService {
 
     let result = "";
 
-    biggestSequence.forEach((number, i) => {
-      if (isLastElement(number, i)) {
-        result += number;
+    biggestSequence.forEach((node, i) => {
+      if (isLastElement(i)) {
+        result += node.value;
       } else {
-        result += removeLastTwoDigits(number);
+        result += removeLastTwoDigits(node.value);
       }
 
-      function isLastElement(number: string, i: number) {
+      function isLastElement(i: number) {
         return i === biggestSequence.length - 1;
       }
     });
@@ -47,30 +84,6 @@ class SolverService {
     function removeLastTwoDigits(number: string) {
       return number.slice(0, -2);
     }
-  }
-  findNumberSequence(number: string, parsedData: ParsedData): string[] {
-    const result = [number] as string[];
-    const lastTwoDigits = dataReceiverService.getLastTwoDigits(number);
-    let nextNum = parsedData.mapFirstTwoDigitsToNumber.get(lastTwoDigits);
-
-    if (!nextNum) {
-      return result;
-    }
-
-    result.push(nextNum);
-
-    while (nextNum) {
-      const prevNum = nextNum;
-
-      nextNum = parsedData.mapFirstTwoDigitsToNumber.get(
-        dataReceiverService.getLastTwoDigits(nextNum),
-      );
-      if (!nextNum) {
-        break;
-      }
-      result.push(nextNum);
-    }
-    return result;
   }
 }
 
