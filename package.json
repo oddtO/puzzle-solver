@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "./dist/puzzle-solver.js"
+    "start": "node ./dist/puzzle-solver.js",
+    "start-task-solution": "node ./dist/puzzle-solver.js ./data/source.txt"
   },
   "keywords": [],
   "author": "",

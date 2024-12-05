@@ -10,7 +10,7 @@ if (!dataPath) {
   process.exit(1);
 }
 async function solveAsync(dataPath: string) {
-  solverService.start(path.resolve(__dirname, dataPath));
+  solverService.start(path.resolve(process.cwd(), dataPath));
 }
 
 solveAsync(dataPath);
