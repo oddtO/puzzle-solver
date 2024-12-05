@@ -42,6 +42,10 @@ You will need `Node.js` and `npm` installed globally on your machine.
    ```sh
    npm run start -- ./data/source.txt
    ```
+7. Run script manually without npm wrappers 
+   ```sh
+   node ./dist/puzzle-solver.js ./data/source.txt
+   ```
 
 
 
